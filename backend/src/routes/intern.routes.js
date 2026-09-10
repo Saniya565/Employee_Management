@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { protect } from "../middleware/auth.js";
+import { listInterns, getIntern, createIntern, updateIntern, deleteIntern, convertIntern } from "../controllers/intern.controller.js";
+const router = Router();
+router.use(protect);
+router.get("/", listInterns);
+router.get("/:id", getIntern);
+router.post("/", createIntern);
+router.put("/:id", updateIntern);
+router.delete("/:id", deleteIntern);
+router.post("/:id/convert", convertIntern);
+export default router;

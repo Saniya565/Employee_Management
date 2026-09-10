@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { protect } from "../middleware/auth.js";
+import { listOffers, createOffer, updateOffer, offerPdf } from "../controllers/offer.controller.js";
+const router = Router();
+router.use(protect);
+router.get("/", listOffers);
+router.post("/", createOffer);
+router.put("/:id", updateOffer);
+router.get("/:id/pdf", offerPdf);
+export default router;

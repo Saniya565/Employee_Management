@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { protect } from "../middleware/auth.js";
+import { upload } from "../middleware/upload.js";
+import { listDocuments, uploadDocument, deleteDocument } from "../controllers/document.controller.js";
+const router = Router();
+router.use(protect);
+router.get("/employees/:id/documents", listDocuments);
+router.post("/employees/:id/documents", upload.single("file"), uploadDocument);
+router.delete("/documents/:id", deleteDocument);
+export default router;

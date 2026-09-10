@@ -1,0 +1,17 @@
+import { Router } from "express";
+import { protect } from "../middleware/auth.js";
+import { makeMaster } from "../controllers/master.controller.js";
+import Department from "../models/Department.js";
+import Designation from "../models/Designation.js";
+const router = Router();
+router.use(protect);
+const department = makeMaster(Department), designation = makeMaster(Designation);
+router.get("/departments", department.list);
+router.post("/departments", department.create);
+router.put("/departments/:id", department.update);
+router.delete("/departments/:id", department.remove);
+router.get("/designations", designation.list);
+router.post("/designations", designation.create);
+router.put("/designations/:id", designation.update);
+router.delete("/designations/:id", designation.remove);
+export default router;
