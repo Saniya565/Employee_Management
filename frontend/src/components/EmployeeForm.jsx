@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-const blank={employeeId:"",fullName:"",email:"",phone:"",dateOfBirth:"",gender:"Prefer not to say",address:"",department:"Technology",designation:"Software Developer",employmentType:"Full-time",dateOfJoining:new Date().toISOString().slice(0,10),reportingManager:"",workLocation:"",employmentStatus:"Active",probationPeriod:3,probationEndDate:"",emergencyContact:"",bankDetails:"",panDetails:"",notes:""};
+const blank={loginPassword:"",employeeId:"",fullName:"",email:"",phone:"",dateOfBirth:"",gender:"Prefer not to say",address:"",department:"Technology",designation:"Software Developer",employmentType:"Full-time",dateOfJoining:new Date().toISOString().slice(0,10),reportingManager:"",workLocation:"",employmentStatus:"Active",probationPeriod:3,probationEndDate:"",emergencyContact:"",bankDetails:"",panDetails:"",notes:""};
 export default function EmployeeForm({ initial, onSaved, onCancel }) {
   const [form,setForm]=useState({...blank,...initial, dateOfBirth: initial?.dateOfBirth?.slice(0,10)||"",dateOfJoining:initial?.dateOfJoining?.slice(0,10)||blank.dateOfJoining,probationEndDate:initial?.probationEndDate?.slice(0,10)||""});
   const [departments,setDepartments]=useState([]),[designations,setDesignations]=useState([]),[error,setError]=useState(""),[busy,setBusy]=useState(false);
@@ -13,6 +13,7 @@ export default function EmployeeForm({ initial, onSaved, onCancel }) {
     <label>Employee ID *<input value={form.employeeId} onChange={e=>set("employeeId",e.target.value)} placeholder="EMP-001" required/></label>
     <label>Full name *<input value={form.fullName} onChange={e=>set("fullName",e.target.value)} placeholder="Full name" required/></label>
     <label>Email *<input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="name@company.com" required/></label>
+    <label>Employee login password<input type="password" value={form.loginPassword||""} onChange={e=>set("loginPassword",e.target.value)} placeholder={initial?"Leave blank to keep current":"Set employee login password"}/></label>
     <label>Phone *<input value={form.phone} onChange={e=>set("phone",e.target.value)} placeholder="+91 98765 43210" pattern="[0-9+ ()-]{10,}" required/></label>
     <label>Date of birth<input type="date" value={form.dateOfBirth} onChange={e=>set("dateOfBirth",e.target.value)}/></label>
     <label>Gender<select value={form.gender} onChange={e=>set("gender",e.target.value)}>{["Male","Female","Other","Prefer not to say"].map(x=><option key={x}>{x}</option>)}</select></label>

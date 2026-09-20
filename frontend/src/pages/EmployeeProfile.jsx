@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -32,12 +31,9 @@ export default function EmployeeProfile() {
   const [toast, setToast] = useState("");
 
   const load = () => {
-    api
-      .get(`/employees/${id}`)
-      .then((r) => setData(r.data))
-      .catch((err) => {
-        console.error("Failed to load employee:", err);
-      });
+    api.get(`/employees/${id}`).then((r) => {
+      setData(r.data);
+    });
   };
 
   useEffect(() => {
@@ -48,67 +44,39 @@ export default function EmployeeProfile() {
     return <Loader />;
   }
 
-  const {
-    employee: e,
-    salaryHistory,
-    documents,
-    offers,
-  } = data;
+  const { employee: e, salaryHistory, documents, offers } = data;
 
   const current = salaryHistory?.[0];
 
-  // Add salary revision
   const saveSalary = async (ev) => {
     ev.preventDefault();
 
-    try {
-      const formData = new FormData(ev.target);
-      const body = Object.fromEntries(formData.entries());
+    const f = new FormData(ev.target);
+    const body = Object.fromEntries(f.entries());
 
-      await api.post(`/employees/${id}/salary`, body);
+    await api.post(`/employees/${id}/salary`, body);
 
-      setSalaryOpen(false);
-      setToast("Salary record added");
-      load();
-    } catch (err) {
-      console.error("Failed to add salary:", err);
-      setToast("Failed to add salary record");
-    }
+    setSalaryOpen(false);
+    setToast("Salary record added");
+
+    load();
   };
 
-  // Upload employee document
   const upload = async (ev) => {
     ev.preventDefault();
 
-    try {
-      const formData = new FormData(ev.target);
+    const fd = new FormData(ev.target);
 
-      await api.post(`/employees/${id}/documents`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    await api.post(`/employees/${id}/documents`, fd, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-      setDocOpen(false);
-      setToast("Document uploaded");
-      load();
-    } catch (err) {
-      console.error("Failed to upload document:", err);
-      setToast("Failed to upload document");
-    }
-  };
+    setDocOpen(false);
+    setToast("Document uploaded");
 
-  // Delete document
-  const deleteDocument = async (documentId) => {
-    try {
-      await api.delete(`/documents/${documentId}`);
-
-      setToast("Document deleted");
-      load();
-    } catch (err) {
-      console.error("Failed to delete document:", err);
-      setToast("Failed to delete document");
-    }
+    load();
   };
 
   return (
@@ -122,7 +90,7 @@ export default function EmployeeProfile() {
         Back to employees
       </button>
 
-      {/* Employee Hero */}
+      {/* Profile Hero */}
       <div className="profile-hero panel">
         <div className="profile-avatar">
           {e.fullName?.[0]}
@@ -164,9 +132,7 @@ export default function EmployeeProfile() {
             <span>
               <CalendarDays size={15} />
               Joined{" "}
-              {e.dateOfJoining
-                ? new Date(e.dateOfJoining).toLocaleDateString("en-IN")
-                : "—"}
+              {new Date(e.dateOfJoining).toLocaleDateString("en-IN")}
             </span>
           </div>
         </div>
@@ -189,13 +155,13 @@ export default function EmployeeProfile() {
             "Probation",
             "Confirmed",
             "Relieved",
-          ].map((step, index) => (
+          ].map((x, i) => (
             <div
-              className={`life-step ${index <= 3 ? "done" : ""}`}
-              key={step}
+              className={`life-step ${i <= 3 ? "done" : ""}`}
+              key={x}
             >
-              <span>{index <= 3 ? "✓" : index + 1}</span>
-              <b>{step}</b>
+              <span>{i <= 3 ? "✓" : i + 1}</span>
+              <b>{x}</b>
             </div>
           ))}
         </div>
@@ -203,7 +169,6 @@ export default function EmployeeProfile() {
 
       {/* Personal + Professional Information */}
       <div className="profile-grid">
-        {/* Personal Information */}
         <section className="panel">
           <div className="panel-head">
             <div>
@@ -224,7 +189,7 @@ export default function EmployeeProfile() {
                   ? new Date(e.dateOfBirth).toLocaleDateString("en-IN")
                   : "—",
               ],
-              ["Gender", e.gender || "—"],
+              ["Gender", e.gender],
               ["Address", e.address || "—"],
               [
                 "Emergency contact",
@@ -234,7 +199,6 @@ export default function EmployeeProfile() {
           />
         </section>
 
-        {/* Professional Information */}
         <section className="panel">
           <div className="panel-head">
             <div>
@@ -247,9 +211,9 @@ export default function EmployeeProfile() {
 
           <InfoGrid
             items={[
-              ["Department", e.department || "—"],
-              ["Designation", e.designation || "—"],
-              ["Employment type", e.employmentType || "—"],
+              ["Department", e.department],
+              ["Designation", e.designation],
+              ["Employment type", e.employmentType],
               [
                 "Reporting manager",
                 e.reportingManager || "—",
@@ -292,14 +256,12 @@ export default function EmployeeProfile() {
           </button>
         </div>
 
-        {/* Current Salary Highlight */}
         {current && (
           <div className="salary-highlight">
             <div>
               <span>Current CTC</span>
               <b>
-                ₹
-                {Number(current.ctc).toLocaleString("en-IN")}
+                ₹{Number(current.ctc).toLocaleString("en-IN")}
               </b>
             </div>
 
@@ -307,9 +269,9 @@ export default function EmployeeProfile() {
               <span>Gross / month</span>
               <b>
                 ₹
-                {Number(
-                  current.grossSalary
-                ).toLocaleString("en-IN")}
+                {Number(current.grossSalary).toLocaleString(
+                  "en-IN"
+                )}
               </b>
             </div>
 
@@ -317,15 +279,14 @@ export default function EmployeeProfile() {
               <span>Net / month</span>
               <b>
                 ₹
-                {Number(
-                  current.netSalary
-                ).toLocaleString("en-IN")}
+                {Number(current.netSalary).toLocaleString(
+                  "en-IN"
+                )}
               </b>
             </div>
           </div>
         )}
 
-        {/* Salary History */}
         {salaryHistory?.length ? (
           <div className="table-wrap">
             <table>
@@ -340,40 +301,34 @@ export default function EmployeeProfile() {
               </thead>
 
               <tbody>
-                {salaryHistory.map((salary, index) => (
-                  <tr key={salary._id}>
+                {salaryHistory.map((s, i) => (
+                  <tr key={s._id}>
                     <td>
-                      {salary.effectiveFrom
-                        ? new Date(
-                            salary.effectiveFrom
-                          ).toLocaleDateString("en-IN")
-                        : "—"}
+                      {new Date(
+                        s.effectiveFrom
+                      ).toLocaleDateString("en-IN")}
                     </td>
 
                     <td>
-                      {index <
-                      salaryHistory.length - 1
+                      {i < salaryHistory.length - 1
                         ? `₹${Number(
-                            salaryHistory[index + 1].ctc
+                            salaryHistory[i + 1].ctc
                           ).toLocaleString("en-IN")}`
                         : "—"}
                     </td>
 
                     <td>
-                      ₹
-                      {Number(
-                        salary.ctc
-                      ).toLocaleString("en-IN")}
+                      ₹{Number(s.ctc).toLocaleString("en-IN")}
                     </td>
 
                     <td>
                       ₹
                       {Number(
-                        salary.grossSalary
+                        s.grossSalary
                       ).toLocaleString("en-IN")}
                     </td>
 
-                    <td>{salary.reason || "—"}</td>
+                    <td>{s.reason || "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -393,9 +348,7 @@ export default function EmployeeProfile() {
               Documents
             </h3>
 
-            <p>
-              Employment records and supporting files
-            </p>
+            <p>Employment records and supporting files</p>
           </div>
 
           <button
@@ -409,38 +362,31 @@ export default function EmployeeProfile() {
 
         {documents?.length ? (
           <div className="doc-list">
-            {documents.map((document) => (
-              <div
-                className="doc-item"
-                key={document._id}
-              >
+            {documents.map((d) => (
+              <div className="doc-item" key={d._id}>
                 <div className="doc-icon">
                   <FileText size={19} />
                 </div>
 
                 <div>
-                  <b>{document.documentName}</b>
+                  <b>{d.documentName}</b>
 
                   <small>
-                    {document.documentType} ·{" "}
-                    {document.uploadDate
-                      ? new Date(
-                          document.uploadDate
-                        ).toLocaleDateString("en-IN")
-                      : "—"}
+                    {d.documentType} ·{" "}
+                    {new Date(
+                      d.uploadDate
+                    ).toLocaleDateString("en-IN")}
                   </small>
                 </div>
 
                 <div className="doc-actions">
-                  <Badge>{document.status}</Badge>
+                  <Badge>{d.status}</Badge>
 
                   <a
-                    href={`${
-                      import.meta.env.VITE_API_URL?.replace(
-                        "/api",
-                        ""
-                      ) || "http://localhost:5000"
-                    }/${document.filePath?.replaceAll(
+                    href={`${(
+                      import.meta.env.VITE_API_URL ||
+                      "http://localhost:5000/api"
+                    ).replace("/api", "")}/${d.filePath?.replaceAll(
                       "\\",
                       "/"
                     )}`}
@@ -451,9 +397,13 @@ export default function EmployeeProfile() {
                   </a>
 
                   <button
-                    onClick={() =>
-                      deleteDocument(document._id)
-                    }
+                    onClick={async () => {
+                      await api.delete(`/documents/${d._id}`);
+
+                      setToast("Document deleted");
+
+                      load();
+                    }}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -478,25 +428,21 @@ export default function EmployeeProfile() {
         </div>
 
         {offers?.length ? (
-          offers.map((offer) => (
-            <div
-              className="history-row"
-              key={offer._id}
-            >
+          offers.map((o) => (
+            <div className="history-row" key={o._id}>
               <div>
-                <b>{offer.candidateName}</b>
+                <b>{o.candidateName}</b>
 
                 <small>
-                  {offer.designation} ·{" "}
-                  {offer.offerDate
-                    ? new Date(
-                        offer.offerDate
-                      ).toLocaleDateString("en-IN")
-                    : "—"}
+                  {o.designation} ·{" "}
+                  {o.offerDate &&
+                    new Date(
+                      o.offerDate
+                    ).toLocaleDateString("en-IN")}
                 </small>
               </div>
 
-              <Badge>{offer.status}</Badge>
+              <Badge>{o.status}</Badge>
             </div>
           ))
         ) : (
@@ -504,7 +450,7 @@ export default function EmployeeProfile() {
         )}
       </section>
 
-      {/* Salary Revision Modal */}
+      {/* Salary Modal */}
       <Modal
         open={salaryOpen}
         onClose={() => setSalaryOpen(false)}
@@ -598,17 +544,14 @@ export default function EmployeeProfile() {
               Cancel
             </button>
 
-            <button
-              type="submit"
-              className="primary-btn"
-            >
+            <button className="primary-btn">
               Save revision
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* Upload Document Modal */}
+      {/* Document Modal */}
       <Modal
         open={docOpen}
         onClose={() => setDocOpen(false)}
@@ -640,13 +583,8 @@ export default function EmployeeProfile() {
                 "Address Proof",
                 "Educational Certificate",
                 "Other",
-              ].map((type) => (
-                <option
-                  key={type}
-                  value={type}
-                >
-                  {type}
-                </option>
+              ].map((x) => (
+                <option key={x}>{x}</option>
               ))}
             </select>
           </label>
@@ -669,10 +607,7 @@ export default function EmployeeProfile() {
               Cancel
             </button>
 
-            <button
-              type="submit"
-              className="primary-btn"
-            >
+            <button className="primary-btn">
               Upload
             </button>
           </div>
@@ -688,21 +623,19 @@ export default function EmployeeProfile() {
   );
 }
 
-// Information Grid
 function InfoGrid({ items }) {
   return (
     <div className="info-grid">
-      {items.map(([label, value]) => (
-        <div key={label}>
-          <span>{label}</span>
-          <b>{value || "—"}</b>
+      {items.map(([a, b]) => (
+        <div key={a}>
+          <span>{a}</span>
+          <b>{b}</b>
         </div>
       ))}
     </div>
   );
 }
 
-// Empty State
 function EmptyMini({ text }) {
   return (
     <div className="small-empty">

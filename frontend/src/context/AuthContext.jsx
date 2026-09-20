@@ -7,8 +7,8 @@ export function AuthProvider({ children }) {
     if (!localStorage.getItem("scorecare_token")) return setLoading(false);
     api.get("/auth/me").then(r => setUser(r.data.user)).catch(() => localStorage.removeItem("scorecare_token")).finally(() => setLoading(false));
   }, []);
-  const login = async (email, password) => {
-    const { data } = await api.post("/auth/login", { email, password });
+  const login = async (email, password, role) => {
+    const { data } = await api.post("/auth/login", { email, password, role });
     localStorage.setItem("scorecare_token", data.token); setUser(data.user); return data;
   };
   const logout = async () => { localStorage.removeItem("scorecare_token"); setUser(null); };

@@ -1,41 +1,12 @@
-import { useEffect, useState } from "react";
-import { Users, GraduationCap, UserCheck, UserX, Clock3, CheckCircle2, Building2, ArrowUpRight, CalendarDays } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import api from "../services/api";
-import StatCard from "../components/StatCard";
-import Badge from "../components/Badge";
-import Loader from "../components/Loader";
-import PageHeader from "../components/PageHeader";
-import { Link } from "react-router-dom";
-
-export default function Dashboard() {
-  const [data, setData] = useState(null);
-  useEffect(()=>{api.get("/dashboard").then(r=>setData(r.data))},[]);
-  if(!data) return <Loader/>;
-  const {stats, recentEmployees, upcomingJoining, charts}=data;
-  const pieData=charts.byStatus.map(x=>({name:x._id,value:x.count}));
-  return <><PageHeader eyebrow="OVERVIEW" title="Good morning, Admin 👋" subtitle="Here's what's happening across your organization today." action={<Link className="primary-btn" to="/employees?new=1">+ Add employee</Link>}/>
-    <div className="stats-grid">
-      <StatCard label="Total employees" value={stats.totalEmployees} icon={Users} tone="purple" sub="Across all departments"/>
-      <StatCard label="Total interns" value={stats.totalInterns} icon={GraduationCap} tone="blue" sub="Current & upcoming"/>
-      <StatCard label="Active employees" value={stats.activeEmployees} icon={UserCheck} tone="green" sub={`${stats.probationEmployees} on probation`}/>
-      <StatCard label="Inactive employees" value={stats.inactiveEmployees} icon={UserX} tone="orange" sub="Resigned / relieved / inactive"/>
-    </div>
-    <div className="dashboard-grid">
-      <section className="panel chart-panel"><div className="panel-head"><div><h3>Employees by department</h3><p>Current workforce distribution</p></div><span className="soft-chip">Live</span></div>
-        {charts.byDepartment.length ? <ResponsiveContainer width="100%" height={280}><BarChart data={charts.byDepartment.map(x=>({department:x._id,count:x.count}))}><XAxis dataKey="department" tickLine={false} axisLine={false}/><YAxis allowDecimals={false} tickLine={false} axisLine={false}/><Tooltip/><Bar dataKey="count" radius={[7,7,0,0]}/></BarChart></ResponsiveContainer> : <div className="chart-empty">Add employees to see analytics.</div>}
-      </section>
-      <section className="panel chart-panel"><div className="panel-head"><div><h3>Workforce status</h3><p>Current employee lifecycle</p></div></div>
-        {pieData.length ? <div className="pie-wrap"><ResponsiveContainer width="100%" height={220}><PieChart><Pie data={pieData} dataKey="value" nameKey="name" innerRadius={62} outerRadius={88} paddingAngle={4}>{pieData.map((_,i)=><Cell key={i}/>)}</Pie><Tooltip/></PieChart></ResponsiveContainer><div className="legend">{pieData.map((x,i)=><div key={x.name}><span className={`dot d${i%4}`}/>{x.name}<b>{x.value}</b></div>)}</div></div> : <div className="chart-empty">No status data yet.</div>}
-      </section>
-    </div>
-    <div className="dashboard-grid lower">
-      <section className="panel"><div className="panel-head"><div><h3>Recently added employees</h3><p>Latest people records</p></div><Link to="/employees" className="text-link">View all <ArrowUpRight size={15}/></Link></div>
-        <div className="table-wrap"><table><thead><tr><th>Employee</th><th>Department</th><th>Joined</th><th>Status</th></tr></thead><tbody>{recentEmployees.map(e=><tr key={e._id}><td><div className="person"><div className="table-avatar">{e.fullName?.[0]}</div><div><b>{e.fullName}</b><small>{e.employeeId}</small></div></div></td><td>{e.department}</td><td>{new Date(e.dateOfJoining).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}</td><td><Badge>{e.employmentStatus}</Badge></td></tr>)}</tbody></table></div>
-      </section>
-      <section className="panel"><div className="panel-head"><div><h3>Upcoming joining</h3><p>Next 30 days</p></div><CalendarDays size={19}/></div>
-        {upcomingJoining.length ? <div className="upcoming-list">{upcomingJoining.map(e=><div className="upcoming-item" key={e._id}><div className="date-tile"><b>{new Date(e.dateOfJoining).getDate()}</b><span>{new Date(e.dateOfJoining).toLocaleString("en-IN",{month:"short"})}</span></div><div><b>{e.fullName}</b><small>{e.department}</small></div><ArrowUpRight size={16}/></div>)}</div> : <div className="small-empty">No upcoming joining dates.</div>}
-      </section>
-    </div>
-  </>;
+import {useEffect,useState} from "react";
+import {Users,GraduationCap,UserCheck,UserX,ArrowUpRight,CalendarDays,CalendarCheck,ClipboardCheck,Wallet} from "lucide-react";
+import {BarChart,Bar,XAxis,YAxis,Tooltip,ResponsiveContainer,PieChart,Pie,Cell} from "recharts";
+import api from "../services/api"; import StatCard from "../components/StatCard"; import Badge from "../components/Badge"; import Loader from "../components/Loader"; import PageHeader from "../components/PageHeader"; import {Link} from "react-router-dom"; import {useAuth} from "../context/AuthContext";
+export default function Dashboard(){
+ const {user}=useAuth(); const employer=["admin","hr","employer"].includes(user?.role); const [data,setData]=useState(null);
+ useEffect(()=>{if(employer)api.get("/dashboard").then(r=>setData(r.data));else setData({})},[employer]);
+ if(!data)return <Loader/>;
+ if(!employer)return <><PageHeader eyebrow="EMPLOYEE PORTAL" title={`Welcome, ${user?.name||"Employee"} 👋`} subtitle="Manage your attendance and leave requests from one place."/><div className="employee-welcome-grid"><Link to="/attendance" className="quick-card"><CalendarCheck/><div><b>Attendance</b><span>View your daily presence and status</span></div><ArrowUpRight/></Link><Link to="/leaves" className="quick-card"><ClipboardCheck/><div><b>Leave Requests</b><span>Submit and track approval requests</span></div><ArrowUpRight/></Link></div></>;
+ const {stats,recentEmployees,upcomingJoining,charts}=data; const pieData=charts.byStatus.map(x=>({name:x._id,value:x.count}));
+ return <><PageHeader eyebrow="OVERVIEW" title={`Good morning, ${user?.name||"Admin"} 👋`} subtitle="Here's what's happening across your organization today." action={<Link className="primary-btn" to="/employees?new=1">+ Add employee</Link>}/><div className="stats-grid"><StatCard label="Total employees" value={stats.totalEmployees} icon={Users} tone="purple" sub="Across all departments"/><StatCard label="Total interns" value={stats.totalInterns} icon={GraduationCap} tone="blue" sub="Current & upcoming"/><StatCard label="Active employees" value={stats.activeEmployees} icon={UserCheck} tone="green" sub={`${stats.probationEmployees} on probation`}/><StatCard label="Inactive employees" value={stats.inactiveEmployees} icon={UserX} tone="orange" sub="Resigned / relieved / inactive"/></div><div className="dashboard-grid"><section className="panel chart-panel"><div className="panel-head"><div><h3>Employees by department</h3><p>Current workforce distribution</p></div><span className="soft-chip">Live</span></div>{charts.byDepartment.length?<ResponsiveContainer width="100%" height={280}><BarChart data={charts.byDepartment.map(x=>({department:x._id,count:x.count}))}><XAxis dataKey="department" tickLine={false} axisLine={false}/><YAxis allowDecimals={false} tickLine={false} axisLine={false}/><Tooltip/><Bar dataKey="count" radius={[7,7,0,0]}/></BarChart></ResponsiveContainer>:<div className="chart-empty">Add employees to see analytics.</div>}</section><section className="panel chart-panel"><div className="panel-head"><div><h3>Workforce status</h3><p>Current employee lifecycle</p></div></div>{pieData.length?<div className="pie-wrap"><ResponsiveContainer width="100%" height={220}><PieChart><Pie data={pieData} dataKey="value" nameKey="name" innerRadius={62} outerRadius={88} paddingAngle={4}>{pieData.map((_,i)=><Cell key={i}/>)}</Pie><Tooltip/></PieChart></ResponsiveContainer><div className="legend">{pieData.map((x,i)=><div key={x.name}><span className={`dot d${i%4}`}/>{x.name}<b>{x.value}</b></div>)}</div></div>:<div className="chart-empty">No status data yet.</div>}</section></div><div className="dashboard-grid lower"><section className="panel"><div className="panel-head"><div><h3>Recently added employees</h3><p>Latest people records</p></div><Link to="/employees" className="text-link">View all <ArrowUpRight size={15}/></Link></div><div className="table-wrap"><table><thead><tr><th>Employee</th><th>Department</th><th>Joined</th><th>Status</th></tr></thead><tbody>{recentEmployees.map(e=><tr key={e._id}><td><div className="person"><div className="table-avatar">{e.fullName?.[0]}</div><div><b>{e.fullName}</b><small>{e.employeeId}</small></div></div></td><td>{e.department}</td><td>{new Date(e.dateOfJoining).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}</td><td><Badge>{e.employmentStatus}</Badge></td></tr>)}</tbody></table></div></section><section className="panel"><div className="panel-head"><div><h3>Upcoming joining</h3><p>Next 30 days</p></div><CalendarDays size={19}/></div>{upcomingJoining.length?<div className="upcoming-list">{upcomingJoining.map(e=><div className="upcoming-item" key={e._id}><div className="date-tile"><b>{new Date(e.dateOfJoining).getDate()}</b><span>{new Date(e.dateOfJoining).toLocaleString("en-IN",{month:"short"})}</span></div><div><b>{e.fullName}</b><small>{e.department}</small></div><ArrowUpRight size={16}/></div>)}</div>:<div className="small-empty">No upcoming joining dates.</div>}</section></div></>;
 }
